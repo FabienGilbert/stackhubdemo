@@ -1,0 +1,50 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vmNames": {
+            "value": ["FG-APPSVR-01"]
+        },
+        "vmSize": {
+            "value": "standard_b1ms"
+        },
+        "vnetResourceGroup": {
+            "value": ""
+        },
+        "vnetName": {
+            "value": ""
+        },
+        "vnetSubnetName": {
+            "value": ""
+        },
+        "localUsername": {
+            "value": "lauser1"
+        },
+        "localPassword": {
+            "reference": {
+                "keyVault": {
+                    "id": ""
+                },
+                "secretName": "lauser1"
+            }
+        },
+        "ImagePublisher": {
+            "value": "MicrosoftWindowsServer"
+        },
+        "ImageOffer": {
+            "value": "WindowsServer"
+        },
+        "ImageSKU": {
+            "value": "2019-Datacenter-Core-smalldisk"
+        },
+        "DataDiskSizes": {
+            "value": ["10","20"]
+        },
+        "diagnosticStorageAccount": {
+            "value": ""
+        },
+        "tagOwner": {
+            "value": ""
+        }
+    }
+}

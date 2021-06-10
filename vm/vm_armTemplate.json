@@ -1,0 +1,253 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vmNames": {
+            "type": "array",
+            "metadata": {
+                "description": "Array of VM Names"
+            }
+        },
+        "vmSize": {
+            "type": "string",
+            "defaultValue": "standard_b2s",
+            "metadata": {
+                "description": "VM Size"
+            }
+        },
+        "vnetResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource Group of the VNET to attach the VM NIC to"
+            }
+        },
+        "vnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the VNET to attach the VM NIC to"
+            }
+        },
+        "vnetSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the VNET Subnet to attach the VM NIC to"
+            }
+        },
+        "localUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "VM Local Administrator Username"
+            }
+        },
+        "localPassword": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "VM Local Administrator Password. Defaults to Public Key."
+            }
+        },
+        "ImagePublisher": {
+            "type": "string",
+            "metadata": {
+                "description": "VM Image Publisher, for instance 'MicrosoftWindowsServer'"
+            }
+        },
+        "ImageOffer": {
+            "type": "string",
+            "metadata": {
+                "description": "VM Image Offer, for instance 'WindowsServer'"
+            }
+        },
+        "ImageSKU": {
+            "type": "string",
+            "metadata": {
+                "description": "VM Image SKU, for intance '2019-Datacenter'"
+            }
+        },
+        "ImageVersion": {
+            "type": "string",
+            "defaultValue": "latest",
+            "metadata": {
+                "description": "VM Image version"
+            }
+        },
+        "OSDiskType": {
+            "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Premium_LRS",
+                "StandardSSD_LRS"
+            ],
+            "metadata": {
+                "description": "VM OS Disk Type"
+            }
+        },
+        "OSDiskCache": {
+            "type": "string",
+            "defaultValue": "ReadWrite",
+            "allowedValues": [
+                "none",
+                "ReadOnly",
+                "ReadWrite"
+            ],
+            "metadata": {
+                "description": "VM OS Disk Caching Setting"
+            }
+        },
+        "OSDiskSize": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "VM OS Disk Size. Defaults to image size."
+            }
+        },
+        "DataDiskType": {
+            "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Premium_LRS",
+                "StandardSSD_LRS"
+            ],
+            "metadata": {
+                "description": "VM Data Disks Type"
+            }
+        },
+        "DataDiskCache": {
+            "type": "string",
+            "defaultValue": "ReadWrite",
+            "allowedValues": [
+                "none",
+                "ReadOnly",
+                "ReadWrite"
+            ],
+            "metadata": {
+                "description": "VM Data Disk Caching Setting"
+            }
+        },
+        "DataDiskSizes": {
+            "type": "array",
+            "metadata": {
+                "description": "VM Data Disk Sizes"
+            }
+        },
+        "diagnosticStorageAccount": {
+            "type": "string",
+            "metadata": {
+                "description": "Boot diagnostic storage account name."
+            }
+        },
+        "tagOwner": {
+            "type": "string",
+            "metadata": {
+                "description": "Owner resource tag"
+            }
+        }
+    },
+    "functions": [],
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(parameters('vmNames')[copyIndex('nicLoop')],'-NIC-01')]",
+            "apiVersion": "2017-11-01",
+            "copy": {
+                "name": "nicLoop",
+                "count": "[length(parameters('vmNames'))]"
+            },
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "owner": "[parameters('tagOwner')]",
+                "component": "VM NIC"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[concat(resourceId(parameters('vnetResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('vnetName')), '/subnets/', parameters('vnetSubnetName'))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('vmNames')[copyIndex('vmLoop')]]",
+            "apiVersion": "2017-12-01",
+            "copy": {
+                "name": "vmLoop",
+                "count": "[length(parameters('vmNames'))]"
+            },
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "owner": "[parameters('tagOwner')]",
+                "component": "VM"
+            },
+            "dependsOn": [
+                "nicLoop"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('vmNames')[copyIndex('vmLoop')]]",
+                    "adminUsername": "[parameters('localUsername')]",
+                    "adminPassword": "[parameters('localPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[parameters('ImagePublisher')]",
+                        "offer": "[parameters('ImageOffer')]",
+                        "sku": "[parameters('ImageSKU')]",
+                        "version": "[parameters('ImageVersion')]"
+                    },
+                    "osDisk": {
+                        "name": "[concat(parameters('vmNames')[copyIndex('vmLoop')], '-OSDisk')]",
+                        "managedDisk": {
+                            "storageAccountType": "[parameters('OSDiskType')]"
+                        },
+                        "caching": "[parameters('OSDiskCache')]",
+                        "diskSizeGB": "[if(equals(parameters('OSDiskSize'), json('null')), json('null'), parameters('OSDiskSize'))]",
+                        "createOption": "FromImage"
+                    },
+                    "copy": [
+                        {
+                            "name": "dataDisks",
+                            "count": "[length(parameters('DataDiskSizes'))]",
+                            "input": {
+                                "lun": "[copyIndex('dataDisks')]",
+                                "name": "[concat(parameters('vmNames')[copyIndex('vmLoop')], '-DataDisk-', copyIndex('dataDisks'))]",
+                                "createOption": "Empty",
+                                "diskSizeGB": "[parameters('DataDiskSizes')[copyIndex('dataDisks')]]",
+                                "caching": "[parameters('DataDiskCache')]",
+                                "managedDisk": {
+                                    "storageAccountType": "[parameters('DataDiskType')]"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmNames')[copyIndex('vmLoop')],'-NIC-01'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', parameters('diagnosticStorageAccount')), '2015-06-15').primaryEndpoints.blob)]"
+                    }
+                }
+            },
+            "resources": []
+        }
+    ],
+    "outputs": {}
+}
