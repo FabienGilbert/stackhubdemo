@@ -1,0 +1,2020 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "deploymentPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Prefix that will be added to all resource names."
+            }
+        },
+        "deploymentLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "Deployment location."
+            }
+        },
+        "supernetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Environment supernet prefix to allow inbound in NSG."
+            }
+        },
+        "vnetAddressPrefixes": {
+            "type": "array",
+            "metadata": {
+                "description": "VNET Address Prefixes."
+            }
+        },
+        "vnetDnsServers": {
+            "type": "array",
+            "metadata": {
+                "description": "DNS Servers to configure the VNET with."
+            },
+            "defaultValue": []
+        },
+        "publicDnsServer": {
+            "type": "string",
+            "metadata": {
+                "description": "Public DNS Server to use before the DC/DNS servers are available and as DNS Forwarder."
+            },
+            "defaultValue": "168.63.129.16"
+        },
+        "subnetPrefixVNGW": {
+            "type": "string",
+            "metadata": {
+                "description": "VNET Gateway VNET subnet prefix."
+            }
+        },
+        "subnetPrefixADDS": {
+            "type": "string",
+            "metadata": {
+                "description": "AD Domain Services VNET subnet prefix."
+            }
+        },
+        "subnetPrefixADFS": {
+            "type": "string",
+            "metadata": {
+                "description": "AD Federation Services VNET subnet prefix."
+            }
+        },
+        "subnetPrefixWAP": {
+            "type": "string",
+            "metadata": {
+                "description": "Web Application Proxy VNET subnet prefix."
+            }
+        },
+        "subnetPrefixJUMP": {
+            "type": "string",
+            "metadata": {
+                "description": "Jump Server VNET subnet prefix."
+            }
+        },
+        "addsServersIpAddresses": {
+            "type": "array",
+            "metadata": {
+                "description": "ADDS Servers static IP addresses."
+            }
+        },
+        "adfsServersIpAddresses": {
+            "type": "array",
+            "metadata": {
+                "description": "ADFS Servers static IP addresses."
+            }
+        },
+        "adcaServersIpAddresses": {
+            "type": "array",
+            "metadata": {
+                "description": "ADCA Servers static IP addresses."
+            }
+        },
+        "internalAdfsLbIpAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "ADFS Load Balance private internal IP address."
+            }
+        },
+        "wapServersIpAddresses": {
+            "type": "array",
+            "metadata": {
+                "description": "WAP Servers static IP addresses."
+            }
+        },
+        "jumpServersIpAddresses": {
+            "type": "array",
+            "metadata": {
+                "description": "Jump Servers static IP addresses."
+            }
+        },
+        "tagSystem": {
+            "type": "string",
+            "metadata": {
+                "description": "Systen Resource Tag Value."
+            }
+        },
+        "addsVmSize": {
+            "type": "string",
+            "metadata": {
+                "description": "Active Directory Domain Services Virtual Machines SKU."
+            }
+        },
+        "adfsVmSize": {
+            "type": "string",
+            "metadata": {
+                "description": "Active Directory Federation Services Virtual Machines SKU."
+            }
+        },
+        "adcaVmSize": {
+            "type": "string",
+            "metadata": {
+                "description": "Active Directory Certification Authority Virtual Machines SKU."
+            }
+        },
+        "wapVmSize": {
+            "type": "string",
+            "metadata": {
+                "description": "Web Application Proxy Virtual Machines SKU."
+            }
+        },
+        "jumpVmSize": {
+            "type": "string",
+            "metadata": {
+                "description": "Jump Server Virtual Machines SKU."
+            }
+        },
+        "keyVaultFullAccessAadGroupId": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure AD Object Id that gets a full access key vault policy."
+            }
+        },
+        "daUserName": {
+            "type": "string",
+            "metadata": {
+                "description": "Domain Admin user name"
+            }
+        },
+
+        "daUserPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Domain Admin user password"
+            }
+        },
+        "deployDaUser": {
+            "type": "bool",
+            "metadata": {
+                "description": "Whether or not to deploy the domain admin user secret to the key vault."
+            },
+            "defaultValue": false
+        },
+        "addsDomainName": {
+            "type": "string",
+            "metadata": {
+                "description": "ADDS Domain Name"
+            }
+        },
+        "publicDomainName": {
+            "type": "string",
+            "metadata": {
+                "description": "Public DNS domain name"
+            }
+        },
+        "laUserName": {
+            "type": "string",
+            "metadata": {
+                "description": "Local Admin user name"
+            }
+        },
+        "laUserPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Local Admin user password"
+            }
+        },
+        "deploylaUser": {
+            "type": "bool",
+            "metadata": {
+                "description": "Whether or not to deploy the local admin user secret to the key vault."
+            },
+            "defaultValue": false
+        },
+        "djUserName": {
+            "type": "string",
+            "metadata": {
+                "description": "Domain Join user name"
+            }
+        },
+        "djUserPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Domain Join user password"
+            }
+        },
+        "deployDjUser": {
+            "type": "bool",
+            "metadata": {
+                "description": "Whether or not to deploy the domain join user secret to the key vault."
+            },
+            "defaultValue": false
+        },
+        "stackBackEndSubnet": {
+            "type": "string",
+            "metadata": {
+                "description": "Backend Stack Hub private subnet"
+            }
+        },
+        "mgmtAllowedPrivateIp": {
+            "type": "string",
+            "metadata": {
+                "description": "On-prems private subnet that is allowed for management in all NSGs"
+            },
+            "defaultValue": null
+        },
+        "rootDscUri": {
+            "type": "string",
+            "metadata": {
+                "description": "uri to the storage account container that contains the DSC configuration files."
+            },
+            "defaultValue": ""
+        },
+        "adds01dscConfig": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the DSC config file to apply to the 1st Domain Controller"
+            }
+        },
+        "adds02dscConfig": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the DSC config file to apply to the 2nd Domain Controller"
+            }
+        },
+        "adfsDscConfig": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the DSC config file to apply to the ADFS servers"
+            }
+        },
+        "adcaDscConfig": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the DSC config file to apply to the AD CA servers"
+            }
+        },
+        "wapDscConfig": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the DSC config file to apply to the WAP servers"
+            }
+        },
+        "jumpDscConfig": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the DSC config file to apply to the jump servers"
+            }
+        }
+    },
+    "variables": {
+        "vgwSubnetName": "GatewaySubnet",
+        "addsSubnetName": "[concat(parameters('deploymentPrefix'), '-SNT-ADDS-', replace(parameters('subnetPrefixADDS'), '/', '_'))]",
+        "adfsSubnetName": "[concat(parameters('deploymentPrefix'), '-SNT-ADFS-', replace(parameters('subnetPrefixADFS'), '/', '_'))]",
+        "wapSubnetName": "[concat(parameters('deploymentPrefix'), '-SNT-WAP-', replace(parameters('subnetPrefixWAP'), '/', '_'))]",
+        "jumpSubnetName": "[concat(parameters('deploymentPrefix'), '-SNT-JUMP-', replace(parameters('subnetPrefixJUMP'), '/', '_'))]",
+        "defaultSecurityRules": [
+            {
+                "direction": "inbound",
+                "priority": 210,
+                "name": "AllowInBoundManagement",
+                "description": "Allow InBound traffic from Jump Servers and on-premises management subnet",
+                "access": "allow",
+                "protocol": "*",
+                "sourceAddressPrefix": "",
+                "sourceAddressPrefixes": [
+                    "[parameters('subnetPrefixJUMP')]"
+                ],
+                "destinationAddressPrefix": "VirtualNetwork",
+                "destinationAddressPrefixes": [],
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "*",
+                "destinationPortRanges": []
+            },
+            {
+                "direction": "inbound",
+                "priority": 1980,
+                "name": "DenyVnetInBoundUdp",
+                "description": "Deny Inbound UDP Traffic from all Azure and on-premises subnets",
+                "access": "deny",
+                "protocol": "udp",
+                "sourceAddressPrefix": "VirtualNetwork",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "VirtualNetwork",
+                "destinationAddressPrefixes": [],
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "*",
+                "destinationPortRanges": []
+            },
+            {
+                "direction": "inbound",
+                "priority": 1990,
+                "name": "DenyInBoundVnetTCP",
+                "description": "Deny Inbound TCP Traffic from all Azure and on-premises subnets.",
+                "access": "deny",
+                "sourceAddressPrefix": "VirtualNetwork",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "VirtualNetwork",
+                "destinationAddressPrefixes": [],
+                "protocol": "tcp",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "*",
+                "destinationPortRanges": []
+            },
+            {
+                "direction": "outbound",
+                "priority": 1980,
+                "name": "DenyVnetOutboundUdp",
+                "description": "Deny Outbound UDP Traffic from all Azure and on-premises subnets",
+                "access": "deny",
+                "protocol": "udp",
+                "sourceAddressPrefix": "VirtualNetwork",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "VirtualNetwork",
+                "destinationAddressPrefixes": [],
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "*",
+                "destinationPortRanges": []
+            },
+            {
+                "direction": "outbound",
+                "priority": 1990,
+                "name": "DenyVnetOutboundTCP",
+                "description": "Deny Outbound TCP Traffic from all Azure and on-premises subnets.",
+                "access": "deny",
+                "sourceAddressPrefix": "VirtualNetwork",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "VirtualNetwork",
+                "destinationAddressPrefixes": [],
+                "protocol": "tcp",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "*",
+                "destinationPortRanges": []
+            }
+        ],
+        "addsSecurityRules": [
+            {
+                "direction": "inbound",
+                "priority": 200,
+                "name": "AllowInBoundIntraSubnetTraffic",
+                "description": "Allow InBound Intra Subnet Traffic",
+                "access": "allow",
+                "protocol": "*",
+                "sourceAddressPrefix": "[parameters('subnetPrefixADDS')]",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "VirtualNetwork",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "*",
+                "destinationPortRanges": []
+            },
+            {
+                "direction": "inbound",
+                "priority": 220,
+                "name": "AllowActiveDirectoryInBoundTCP",
+                "description": "Allow InBound Active Directory TCP protocols to the Domain Controllers",
+                "access": "allow",
+                "protocol": "tcp",
+                "sourceAddressPrefix": [],
+                "sourceAddressPrefixes": [
+                    "[parameters('supernetPrefix')]",
+                    "[parameters('mgmtAllowedPrivateIp')]"
+                ],
+                "destinationAddressPrefix": "VirtualNetwork",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "",
+                "destinationPortRanges": [
+                    "22",
+                    "53",
+                    "88",
+                    "135",
+                    "137-139",
+                    "389",
+                    "445",
+                    "464",
+                    "636",
+                    "3268-3269",
+                    "3389",
+                    "5985-5986",
+                    "49152-65535"
+                ]
+            },
+            {
+                "direction": "inbound",
+                "priority": 230,
+                "name": "AllowInBoundActiveDirectoryUDP",
+                "description": "Allow InBound Active Directory UDP protocols to the Domain Controllers",
+                "access": "allow",
+                "protocol": "udp",
+                "sourceAddressPrefix": [],
+                "sourceAddressPrefixes": [
+                    "[parameters('supernetPrefix')]",
+                    "[parameters('mgmtAllowedPrivateIp')]"
+                ],
+                "destinationAddressPrefix": "VirtualNetwork",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "",
+                "destinationPortRanges": [
+                    "53",
+                    "88",
+                    "123",
+                    "137-139",
+                    "389",
+                    "464",
+                    "49152-65535"
+                ]
+            },
+            {
+                "direction": "inbound",
+                "priority": 280,
+                "name": "AllowInBoundStackHubBackend",
+                "description": "Allow InBound Stack Hub Backend traffic",
+                "access": "allow",
+                "protocol": "*",
+                "sourceAddressPrefix": "[parameters('stackBackEndSubnet')]",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "VirtualNetwork",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "*",
+                "destinationPortRanges": []
+            },
+            {
+                "direction": "outbound",
+                "priority": 200,
+                "name": "AllowOutBoundIntraSubnetTraffic",
+                "description": "Allow OutBound Intra Subnet Traffic",
+                "access": "allow",
+                "protocol": "*",
+                "sourceAddressPrefix": "VirtualNetwork",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "[parameters('subnetPrefixADDS')]",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "*",
+                "destinationPortRanges": []
+            },
+            {
+                "direction": "outbound",
+                "priority": 240,
+                "name": "AllowOutBoundAdfsTcp",
+                "description": "Allow OutBound HTTPS traffic to the ADFS servers",
+                "access": "allow",
+                "protocol": "tcp",
+                "sourceAddressPrefix": "VirtualNetwork",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "[parameters('subnetPrefixADFS')]",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "443",
+                "destinationPortRanges": []
+            },
+            {
+                "direction": "outbound",
+                "priority": 280,
+                "name": "AllowOutBoundStackHubBackend",
+                "description": "Allow OutBound Stack Hub Backend traffic",
+                "access": "allow",
+                "protocol": "*",
+                "sourceAddressPrefix": "VirtualNetwork",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "[parameters('stackBackEndSubnet')]",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "*",
+                "destinationPortRanges": []
+            }
+        ],
+        "adfsSecurityRules": [
+            {
+                "direction": "inbound",
+                "priority": 200,
+                "name": "AllowInBoundIntraSubnetTraffic",
+                "description": "Allow InBound Intra Subnet Traffic",
+                "access": "allow",
+                "protocol": "*",
+                "sourceAddressPrefix": "[parameters('subnetPrefixADFS')]",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "VirtualNetwork",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "*",
+                "destinationPortRanges": []
+            },
+            {
+                "direction": "inbound",
+                "priority": 240,
+                "name": "AllowInBoundLoadBalancer",
+                "description": "Allow InBound Load Balancer",
+                "access": "allow",
+                "protocol": "tcp",
+                "sourceAddressPrefix": "AzureLoadBalancer",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "VirtualNetwork",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "443",
+                "destinationPortRanges": []
+            },
+            {
+                "direction": "inbound",
+                "priority": 250,
+                "name": "AllowInBoundHttpsTcpFromSupernet",
+                "description": "Allow InBound HTTPS traffic From Virtual Network",
+                "access": "allow",
+                "protocol": "tcp",
+                "sourceAddressPrefix": "VirtualNetwork",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "VirtualNetwork",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "443",
+                "destinationPortRanges": []
+            },
+            {
+                "direction": "inbound",
+                "priority": 280,
+                "name": "AllowInBoundStackHubBackend",
+                "description": "Allow InBound Stack Hub Backend traffic",
+                "access": "allow",
+                "protocol": "*",
+                "sourceAddressPrefix": "[parameters('stackBackEndSubnet')]",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "VirtualNetwork",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "*",
+                "destinationPortRanges": []
+            },
+            {
+                "direction": "outbound",
+                "priority": 200,
+                "name": "AllowOutBoundIntraSubnetTraffic",
+                "description": "Allow OutBound Intra Subnet Traffic",
+                "access": "allow",
+                "protocol": "*",
+                "sourceAddressPrefix": "VirtualNetwork",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "[parameters('subnetPrefixADFS')]",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "*",
+                "destinationPortRanges": []
+            },
+            {
+                "direction": "outbound",
+                "priority": 220,
+                "name": "AllowActiveDirectoryOutBoundTCP",
+                "description": "Allow OutBound Active Directory TCP protocols to the Domain Controllers",
+                "access": "allow",
+                "protocol": "tcp",
+                "sourceAddressPrefix": "VirtualNetwork",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "[parameters('subnetPrefixADDS')]",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "",
+                "destinationPortRanges": [
+                    "22",
+                    "53",
+                    "88",
+                    "135",
+                    "137-139",
+                    "389",
+                    "445",
+                    "464",
+                    "636",
+                    "3268-3269",
+                    "3389",
+                    "5985-5986",
+                    "49152-65535"
+                ]
+            },
+            {
+                "direction": "outbound",
+                "priority": 230,
+                "name": "AllowOutBoundActiveDirectoryUDP",
+                "description": "Allow OutBound Active Directory UDP protocols to the Domain Controllers",
+                "access": "allow",
+                "protocol": "udp",
+                "sourceAddressPrefix": "VirtualNetwork",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "[parameters('subnetPrefixADDS')]",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "",
+                "destinationPortRanges": [
+                    "53",
+                    "88",
+                    "123",
+                    "137-139",
+                    "389",
+                    "464",
+                    "49152-65535"
+                ]
+            },
+            {
+                "direction": "outbound",
+                "priority": 280,
+                "name": "AllowOutBoundStackHubBackend",
+                "description": "Allow OutBound Stack Hub Backend traffic",
+                "access": "allow",
+                "protocol": "*",
+                "sourceAddressPrefix": "VirtualNetwork",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "[parameters('stackBackEndSubnet')]",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "*",
+                "destinationPortRanges": []
+            }
+        ],
+        "wapSecurityRules": [
+            {
+                "direction": "inbound",
+                "priority": 240,
+                "name": "AllowHttpsInBoundTCP",
+                "description": "Allow InBound HTTPS traffic",
+                "access": "allow",
+                "protocol": "tcp",
+                "sourceAddressPrefix": "*",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "VirtualNetwork",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "443",
+                "destinationPortRanges": []
+            },
+            {
+                "direction": "outbound",
+                "priority": 230,
+                "name": "AllowOutBoundDnsNtpUDP",
+                "description": "Allow OutBound DNS and UDP traffic to the Domain Controllers",
+                "access": "allow",
+                "protocol": "udp",
+                "sourceAddressPrefix": "VirtualNetwork",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "[parameters('subnetPrefixADDS')]",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "",
+                "destinationPortRanges": [
+                    "53",
+                    "123"
+                ]
+            },
+            {
+                "direction": "outbound",
+                "priority": 240,
+                "name": "AllowOutBoundAdfsTcp",
+                "description": "Allow OutBound HTTPS traffic to the ADFS servers",
+                "access": "allow",
+                "protocol": "tcp",
+                "sourceAddressPrefix": "VirtualNetwork",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "[parameters('subnetPrefixADFS')]",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "443",
+                "destinationPortRanges": []
+            }
+        ],
+        "jumpSecurityRules": [
+            {
+                "direction": "inbound",
+                "priority": 200,
+                "name": "AllowInBoundIntraSubnetTraffic",
+                "description": "Allow InBound Intra Subnet Traffic",
+                "access": "allow",
+                "protocol": "*",
+                "sourceAddressPrefix": "[parameters('subnetPrefixJUMP')]",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "VirtualNetwork",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "*",
+                "destinationPortRanges": []
+            },
+            {
+                "direction": "inbound",
+                "priority": 250,
+                "name": "AllowInBoundPrivateManagement",
+                "description": "Allow InBound Management from on-premises",
+                "access": "allow",
+                "protocol": "tcp",
+                "sourceAddressPrefix": "[parameters('mgmtAllowedPrivateIp')]",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "VirtualNetwork",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "*",
+                "destinationPortRanges": []
+            },
+            {
+                "direction": "inbound",
+                "priority": 260,
+                "name": "AllowInBoundRdp",
+                "description": "Allow InBound RDP from on-premises",
+                "access": "allow",
+                "protocol": "tcp",
+                "sourceAddressPrefix": "VirtualNetwork",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "VirtualNetwork",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "3389",
+                "destinationPortRanges": []
+            },
+            {
+                "direction": "outbound",
+                "priority": 240,
+                "name": "AllowOutBoundJumpServersTraffic",
+                "description": "Allow OutBound traffic from the Jump Servers",
+                "access": "allow",
+                "protocol": "*",
+                "sourceAddressPrefix": "VirtualNetwork",
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefix": "[parameters('supernetPrefix')]",
+                "destinationAddressPrefixes": "",
+                "sourcePortRange": "*",
+                "sourcePortRanges": [],
+                "destinationPortRange": "*",
+                "destinationPortRanges": []
+            }
+        ],
+        "subnets": [
+            {
+                "name": "[variables('vgwSubnetName')]",
+                "description": "VNET Gateway subnet",
+                "ipPrefix": "[parameters('subnetPrefixVNGW')]",
+                "nsg": false,
+                "nsgSecurityRules": "[variables('defaultSecurityRules')]"
+            },
+            {
+                "name": "[variables('addsSubnetName')]",
+                "description": "Domain Controller subnet",
+                "ipPrefix": "[parameters('subnetPrefixADDS')]",
+                "nsg": true,
+                "nsgSecurityRules": "[concat(variables('defaultSecurityRules'), variables('addsSecurityRules'))]"
+            },
+            {
+                "name": "[variables('adfsSubnetName')]",
+                "description": "ADFS subnet",
+                "ipPrefix": "[parameters('subnetPrefixADFS')]",
+                "nsg": true,
+                "nsgSecurityRules": "[concat(variables('defaultSecurityRules'), variables('adfsSecurityRules'))]"
+            },
+            {
+                "name": "[variables('wapSubnetName')]",
+                "description": "Web Application Proxy subnet",
+                "ipPrefix": "[parameters('subnetPrefixWAP')]",
+                "nsg": true,
+                "nsgSecurityRules": "[concat(variables('defaultSecurityRules'), variables('wapSecurityRules'))]"
+            },
+            {
+                "name": "[variables('jumpSubnetName')]",
+                "description": "Jump Servers subnet",
+                "ipPrefix": "[parameters('subnetPrefixJUMP')]",
+                "nsg": true,
+                "nsgSecurityRules": "[concat(variables('defaultSecurityRules'), variables('jumpSecurityRules'))]"
+            }
+        ],
+        "vnetName": "[concat(parameters('deploymentPrefix'), '-CORE-VNET')]",
+        "keyVaultName": "[concat(parameters('deploymentPrefix'), '-CORE-AKV')]",
+        "keyVaultSecrets": [
+            {
+                "name": "[parameters('daUserName')]",
+                "description": "Domain Admin User",
+                "value": "[parameters('daUserPassword')]",
+                "deploy": "[parameters('deployDaUser')]"
+            },
+            {
+                "name": "[parameters('laUserName')]",
+                "description": "Local Admin User",
+                "value": "[parameters('laUserPassword')]",
+                "deploy": "[parameters('deployLaUser')]"
+            },
+            {
+                "name": "[parameters('djUserName')]",
+                "description": "Domain Join User",
+                "value": "[parameters('djUserPassword')]",
+                "deploy": "[parameters('deployDjUser')]"
+            }
+        ],
+        "storeName": "[concat(toLower(parameters('deploymentPrefix')), 'corevmdiagstore')]",
+        "vgwName": "[concat(parameters('deploymentPrefix'), '-CORE-VGW')]",
+        "vgwSku": "Basic",
+        "jumpPipName": "[concat(parameters('deploymentPrefix'), '-JUMP-PIP')]",
+        "wapPipName": "[concat(parameters('deploymentPrefix'), '-WAP-PIP')]",
+        "vgwPipName": "[concat(parameters('deploymentPrefix'), '-VGW-PIP')]",
+        "publicIpAddress": [
+            {
+                "name": "[variables('jumpPipName')]",
+                "domainNameLabel": "[concat(toLower(parameters('deploymentPrefix')),'jumppip')]",
+                "sku": "Basic",
+                "publicIPAllocationMethod": "Static",
+                "tags": {
+                    "system": "[parameters('tagSystem')]",
+                    "component": "Jump Server Public IP Address"
+                }
+            },
+            {
+                "name": "[variables('wapPipName')]",
+                "domainNameLabel": "[concat(toLower(parameters('deploymentPrefix')),'stspip')]",
+                "sku": "Basic",
+                "publicIPAllocationMethod": "Static",
+                "tags": {
+                    "system": "[parameters('tagSystem')]",
+                    "component": "Web Application Proxy Public IP Address"
+                }
+            },
+            {
+                "name": "[variables('vgwPipName')]",
+                "domainNameLabel": "[concat(toLower(parameters('deploymentPrefix')),'vgwpip')]",
+                "sku": "Basic",
+                "publicIPAllocationMethod": "Dynamic",
+                "tags": {
+                    "system": "[parameters('tagSystem')]",
+                    "component": "Virtual Network Gateway Public IP Address"
+                }
+            }
+        ],
+        "adfsLbName": "[concat(parameters('deploymentPrefix'), '-ADFS-LB')]",
+        "wapLbName": "[concat(parameters('deploymentPrefix'), '-WAP-LB')]",
+        "loadBalancers": [
+            {
+                "name": "[variables('adfsLbName')]",
+                "tags": {
+                    "system": "[parameters('tagSystem')]",
+                    "component": "ADFS Internal Load Balancer"
+                },
+                "sku": "Basic",
+                "lbFrontEndName": "haInternalADFS",
+                "lbFrontendType": "private",
+                "subnet": "[variables('adfsSubnetName')]",
+                "privateIpAddress": "[parameters('internalAdfsLbIpAddress')]",
+                "publicIpName": null,
+                "lbBackEndName": "adfsServers"
+            },
+            {
+                "name": "[variables('wapLbName')]",
+                "tags": {
+                    "system": "[parameters('tagSystem')]",
+                    "component": "Web Application Proxy External Load Balancer"
+                },
+                "sku": "Basic",
+                "lbFrontEndName": "haExternalWAP",
+                "lbFrontendType": "public",
+                "subnet": null,
+                "privateIpAddress": null,
+                "publicIpName": "[variables('wapPipName')]",
+                "lbBackEndName": "wapServers"
+            }
+        ],
+        "addsAvSetName": "[concat(parameters('deploymentPrefix'), '-ADDS-AVSET')]",
+        "adfsAvSetName": "[concat(parameters('deploymentPrefix'), '-ADFS-AVSET')]",
+        "wapAvSetName": "[concat(parameters('deploymentPrefix'), '-WAP-AVSET')]",
+        "publicDnsServers": [ "[parameters('publicDnsServer')]" ],
+        "availabilitySets": [
+            {
+                "name": "[variables('addsAvSetName')]",
+                "PlatformUpdateDomainCount": 5,
+                "PlatformFaultDomainCount": 2,
+                "tags": {
+                    "system": "[parameters('tagSystem')]",
+                    "component": "Availability Set for the AD Domain Controllers"
+                }
+            },
+            {
+                "name": "[variables('adfsAvSetName')]",
+                "PlatformUpdateDomainCount": 5,
+                "PlatformFaultDomainCount": 2,
+                "tags": {
+                    "system": "[parameters('tagSystem')]",
+                    "component": "Availability Set for the ADFS Servers"
+                }
+            },
+            {
+                "name": "[variables('wapAvSetName')]",
+                "PlatformUpdateDomainCount": 5,
+                "PlatformFaultDomainCount": 2,
+                "tags": {
+                    "system": "[parameters('tagSystem')]",
+                    "component": "Availability Set for the Web Application Proxy Servers"
+                }
+            }
+        ],
+        "addsCompute": {
+            "namePrefix": "[concat(parameters('deploymentPrefix'), '-ADDS')]",
+            "count": 2,
+            "availabilitySet": "[variables('addsAvSetName')]",
+            "size": "[parameters('addsVmSize')]",
+            "subnetName": "[variables('addsSubnetName')]",
+            "privateIpAddresses": "[parameters('addsServersIpAddresses')]",
+            "publicIpAddresses": [],
+            "loadBalancerName": null,
+            "loadBalancerBackEndPool": null,
+            "dnsServers": "[concat(parameters('vnetDnsServers'), variables('publicDnsServers'))]",
+            "imagePublisher": "MicrosoftWindowsServer",
+            "imageOffer": "WindowsServer",
+            "imageSKU": "2019-Datacenter-Core-smalldisk",
+            "imageVersion": "latest",
+            "localUsername": "[parameters('daUserName')]",
+            "localPassword": "[parameters('daUserPassword')]",
+            "domainJoin": false,
+            "dscConfig": null,
+            "osDiskType": "Standard_LRS",
+            "osDiskCache": "ReadWrite",
+            "osDiskSize": null,
+            "dataDiskType": "Standard_LRS",
+            "dataDiskCache": "none",
+            "dataDiskSize": 64,
+            "componentTag": "AD Domain Controller Virtual Machine"
+
+        },
+        "adfsCompute": {
+            "namePrefix": "[concat(parameters('deploymentPrefix'), '-ADFS')]",
+            "count": 2,
+            "availabilitySet": "[variables('adfsAvSetName')]",
+            "size": "[parameters('adfsVmSize')]",
+            "subnetName": "[variables('adfsSubnetName')]",
+            "privateIpAddresses": "[parameters('adfsServersIpAddresses')]",
+            "publicIpAddresses": [],
+            "loadBalancerName": "[variables('adfsLbName')]",
+            "loadBalancerBackEndPool": "adfsServers",
+            "dnsServers": [],
+            "imagePublisher": "MicrosoftWindowsServer",
+            "imageOffer": "WindowsServer",
+            "imageSKU": "2019-Datacenter-smalldisk",
+            "imageVersion": "latest",
+            "localUsername": "[parameters('laUserName')]",
+            "localPassword": "[parameters('laUserPassword')]",
+            "domainJoin": true,
+            "dscConfig": "[parameters('adfsDscConfig')]",
+            "osDiskType": "Standard_LRS",
+            "osDiskCache": "ReadWrite",
+            "osDiskSize": null,
+            "dataDiskType": null,
+            "dataDiskCache": null,
+            "dataDiskSize": null,
+            "componentTag": "AD Federation Services Virtual Machine"
+        },
+        "adcaCompute": {
+            "namePrefix": "[concat(parameters('deploymentPrefix'), '-ADCA')]",
+            "count": 1,
+            "availabilitySet": null,
+            "size": "[parameters('adcaVmSize')]",
+            "subnetName": "[variables('addsSubnetName')]",
+            "privateIpAddresses": "[parameters('adcaServersIpAddresses')]",
+            "publicIpAddresses": [],
+            "loadBalancerName": null,
+            "loadBalancerBackEndPool": null,
+            "dnsServers": [],
+            "imagePublisher": "MicrosoftWindowsServer",
+            "imageOffer": "WindowsServer",
+            "imageSKU": "2019-Datacenter-smalldisk",
+            "imageVersion": "latest",
+            "localUsername": "[parameters('laUserName')]",
+            "localPassword": "[parameters('laUserPassword')]",
+            "domainJoin": true,
+            "dscConfig": null,
+            "osDiskType": "Standard_LRS",
+            "osDiskCache": "ReadWrite",
+            "osDiskSize": null,
+            "dataDiskType": null,
+            "dataDiskCache": null,
+            "dataDiskSize": null,
+            "componentTag": "AD Certification Authority Virtual Machine"
+        },
+        "wapCompute": {
+            "namePrefix": "[concat(parameters('deploymentPrefix'), '-WAP')]",
+            "count": 2,
+            "availabilitySet": "[variables('wapAvSetName')]",
+            "size": "[parameters('wapVmSize')]",
+            "subnetName": "[variables('wapSubnetName')]",
+            "privateIpAddresses": "[parameters('wapServersIpAddresses')]",
+            "publicIpAddresses": [],
+            "loadBalancerName": "[variables('wapLbName')]",
+            "loadBalancerBackEndPool": "wapServers",
+            "dnsServers": [],
+            "imagePublisher": "MicrosoftWindowsServer",
+            "imageOffer": "WindowsServer",
+            "imageSKU": "2019-Datacenter-smalldisk",
+            "imageVersion": "latest",
+            "localUsername": "[parameters('laUserName')]",
+            "localPassword": "[parameters('laUserPassword')]",
+            "domainJoin": false,
+            "dscConfig": "[parameters('wapDscConfig')]",
+            "osDiskType": "Standard_LRS",
+            "osDiskCache": "ReadWrite",
+            "osDiskSize": null,
+            "dataDiskType": null,
+            "dataDiskCache": null,
+            "dataDiskSize": null,
+            "componentTag": "Web Application Proxy Virtual Machine"
+        },
+        "jumpCompute": {
+            "namePrefix": "[concat(parameters('deploymentPrefix'), '-JUMP')]",
+            "count": 1,
+            "availabilitySet": null,
+            "size": "[parameters('jumpVmSize')]",
+            "subnetName": "[variables('jumpSubnetName')]",
+            "privateIpAddresses": "[parameters('jumpServersIpAddresses')]",
+            "publicIpAddresses": [
+                "[variables('jumpPipName')]"
+            ],
+            "loadBalancerName": null,
+            "loadBalancerBackEndPool": null,
+            "dnsServers": [],
+            "imagePublisher": "MicrosoftWindowsServer",
+            "imageOffer": "WindowsServer",
+            "imageSKU": "2019-Datacenter-smalldisk",
+            "imageVersion": "latest",
+            "localUsername": "[parameters('laUserName')]",
+            "localPassword": "[parameters('laUserPassword')]",
+            "domainJoin": true,
+            "dscConfig": "[parameters('jumpDscConfig')]",
+            "osDiskType": "Premium_LRS",
+            "osDiskCache": "ReadWrite",
+            "osDiskSize": null,
+            "dataDiskType": null,
+            "dataDiskCache": null,
+            "dataDiskSize": null,
+            "componentTag": "Jump Server Virtual Machine"
+        },
+        "copy": [
+            {
+                "name": "addsVm",
+                "count": "[variables('addsCompute').count]",
+                "input": {
+                    "name": "[concat(variables('addsCompute').namePrefix, '-', padLeft(add(copyIndex('addsVm'),1),2,'0'))]",
+                    "availabilitySet": "[variables('addsCompute').availabilitySet]",
+                    "size": "[variables('addsCompute').size]",
+                    "subnetName": "[variables('addsCompute').subnetName]",
+                    "privateIpAddress": "[variables('addsCompute').privateIpAddresses[copyIndex('addsVm')]]",
+                    "publicIpAddress": "[if(equals(variables('addsCompute').publicIpAddresses, json('[]')), json('null'), variables('addsCompute').publicIpAddresses[copyIndex('addsVm')])]",
+                    "loadBalancerName": "[variables('addsCompute').loadBalancerName]",
+                    "loadBalancerBackEndPool": "[variables('addsCompute').loadBalancerBackEndPool]",
+                    "dnsServers": "[variables('addsCompute').dnsServers]",
+                    "imagePublisher": "[variables('addsCompute').imagePublisher]",
+                    "imageOffer": "[variables('addsCompute').imageOffer]",
+                    "imageSKU": "[variables('addsCompute').imageSKU]",
+                    "imageVersion": "[variables('addsCompute').imageVersion]",
+                    "localUsername": "[variables('addsCompute').localUsername]",
+                    "localPassword": "[variables('addsCompute').localPassword]",
+                    "domainJoin": "[variables('addsCompute').domainJoin]",
+                    "dscConfig": "[variables('addsCompute').dscConfig]",
+                    "osDiskType": "[variables('addsCompute').osDiskType]",
+                    "osDiskCache": "[variables('addsCompute').osDiskCache]",
+                    "osDiskSize": "[variables('addsCompute').osDiskSize]",
+                    "dataDiskType": "[variables('addsCompute').dataDiskType]",
+                    "dataDiskCache": "[variables('addsCompute').dataDiskCache]",
+                    "dataDiskSize": "[variables('addsCompute').dataDiskSize]",
+                    "dataDiskName": "[concat(variables('addsCompute').namePrefix, '-', padLeft(add(copyIndex('addsVm'),1),2,'0'), '-DataDisk-01')]",
+                    "componentTag": "[variables('addsCompute').componentTag]"
+                }
+            },
+            {
+                "name": "adfsVm",
+                "count": "[variables('adfsCompute').count]",
+                "input": {
+                    "name": "[concat(variables('adfsCompute').namePrefix, '-', padLeft(add(copyIndex('adfsVm'),1),2,'0'))]",
+                    "availabilitySet": "[variables('adfsCompute').availabilitySet]",
+                    "size": "[variables('adfsCompute').size]",
+                    "subnetName": "[variables('adfsCompute').subnetName]",
+                    "privateIpAddress": "[variables('adfsCompute').privateIpAddresses[copyIndex('adfsVm')]]",
+                    "publicIpAddress": "[if(equals(variables('adfsCompute').publicIpAddresses, json('[]')), json('null'), variables('adfsCompute').publicIpAddresses[copyIndex('adfsVm')])]",
+                    "loadBalancerName": "[variables('adfsCompute').loadBalancerName]",
+                    "loadBalancerBackEndPool": "[variables('adfsCompute').loadBalancerBackEndPool]",
+                    "dnsServers": "[variables('adfsCompute').dnsServers]",
+                    "imagePublisher": "[variables('adfsCompute').imagePublisher]",
+                    "imageOffer": "[variables('adfsCompute').imageOffer]",
+                    "imageSKU": "[variables('adfsCompute').imageSKU]",
+                    "imageVersion": "[variables('adfsCompute').imageVersion]",
+                    "localUsername": "[variables('adfsCompute').localUsername]",
+                    "localPassword": "[variables('adfsCompute').localPassword]",
+                    "domainJoin": "[variables('adfsCompute').domainJoin]",
+                    "dscConfig": "[variables('adfsCompute').dscConfig]",
+                    "osDiskType": "[variables('adfsCompute').osDiskType]",
+                    "osDiskCache": "[variables('adfsCompute').osDiskCache]",
+                    "osDiskSize": "[variables('adfsCompute').osDiskSize]",
+                    "dataDiskType": "[variables('adfsCompute').dataDiskType]",
+                    "dataDiskCache": "[variables('adfsCompute').dataDiskCache]",
+                    "dataDiskSize": "[variables('adfsCompute').dataDiskSize]",
+                    "dataDiskName": "[concat(variables('adfsCompute').namePrefix, '-', padLeft(add(copyIndex('adfsVm'),1),2,'0'), '-DataDisk-01')]",
+                    "componentTag": "[variables('adfsCompute').componentTag]"
+                }
+            },
+            {
+                "name": "adcaVm",
+                "count": "[variables('adcaCompute').count]",
+                "input": {
+                    "name": "[concat(variables('adcaCompute').namePrefix, '-', padLeft(add(copyIndex('adcaVm'),1),2,'0'))]",
+                    "availabilitySet": "[variables('adcaCompute').availabilitySet]",
+                    "size": "[variables('adcaCompute').size]",
+                    "subnetName": "[variables('adcaCompute').subnetName]",
+                    "privateIpAddress": "[variables('adcaCompute').privateIpAddresses[copyIndex('adcaVm')]]",
+                    "publicIpAddress": "[if(equals(variables('adcaCompute').publicIpAddresses, json('[]')), json('null'), variables('adcaCompute').publicIpAddresses[copyIndex('adcaVm')])]",
+                    "loadBalancerName": "[variables('adcaCompute').loadBalancerName]",
+                    "loadBalancerBackEndPool": "[variables('adcaCompute').loadBalancerBackEndPool]",
+                    "dnsServers": "[variables('adcaCompute').dnsServers]",
+                    "imagePublisher": "[variables('adcaCompute').imagePublisher]",
+                    "imageOffer": "[variables('adcaCompute').imageOffer]",
+                    "imageSKU": "[variables('adcaCompute').imageSKU]",
+                    "imageVersion": "[variables('adcaCompute').imageVersion]",
+                    "localUsername": "[variables('adcaCompute').localUsername]",
+                    "localPassword": "[variables('adcaCompute').localPassword]",
+                    "domainJoin": "[variables('adcaCompute').domainJoin]",
+                    "dscConfig": "[variables('adcaCompute').dscConfig]",
+                    "osDiskType": "[variables('adcaCompute').osDiskType]",
+                    "osDiskCache": "[variables('adcaCompute').osDiskCache]",
+                    "osDiskSize": "[variables('adcaCompute').osDiskSize]",
+                    "dataDiskType": "[variables('adcaCompute').dataDiskType]",
+                    "dataDiskCache": "[variables('adcaCompute').dataDiskCache]",
+                    "dataDiskSize": "[variables('adcaCompute').dataDiskSize]",
+                    "dataDiskName": "[concat(variables('adcaCompute').namePrefix, '-', padLeft(add(copyIndex('adcaVm'),1),2,'0'), '-DataDisk-01')]",
+                    "componentTag": "[variables('adcaCompute').componentTag]"
+                }
+            },
+            {
+                "name": "wapVm",
+                "count": "[variables('wapCompute').count]",
+                "input": {
+                    "name": "[concat(variables('wapCompute').namePrefix, '-', padLeft(add(copyIndex('wapVm'),1),2,'0'))]",
+                    "availabilitySet": "[variables('wapCompute').availabilitySet]",
+                    "size": "[variables('wapCompute').size]",
+                    "subnetName": "[variables('wapCompute').subnetName]",
+                    "privateIpAddress": "[variables('wapCompute').privateIpAddresses[copyIndex('wapVm')]]",
+                    "publicIpAddress": "[if(equals(variables('wapCompute').publicIpAddresses, json('[]')), json('null'), variables('wapCompute').publicIpAddresses[copyIndex('wapVm')])]",
+                    "loadBalancerName": "[variables('wapCompute').loadBalancerName]",
+                    "loadBalancerBackEndPool": "[variables('wapCompute').loadBalancerBackEndPool]",
+                    "dnsServers": "[variables('wapCompute').dnsServers]",
+                    "imagePublisher": "[variables('wapCompute').imagePublisher]",
+                    "imageOffer": "[variables('wapCompute').imageOffer]",
+                    "imageSKU": "[variables('wapCompute').imageSKU]",
+                    "imageVersion": "[variables('wapCompute').imageVersion]",
+                    "localUsername": "[variables('wapCompute').localUsername]",
+                    "localPassword": "[variables('wapCompute').localPassword]",
+                    "domainJoin": "[variables('wapCompute').domainJoin]",
+                    "dscConfig": "[variables('wapCompute').dscConfig]",
+                    "osDiskType": "[variables('wapCompute').osDiskType]",
+                    "osDiskCache": "[variables('wapCompute').osDiskCache]",
+                    "osDiskSize": "[variables('wapCompute').osDiskSize]",
+                    "dataDiskType": "[variables('wapCompute').dataDiskType]",
+                    "dataDiskCache": "[variables('wapCompute').dataDiskCache]",
+                    "dataDiskSize": "[variables('wapCompute').dataDiskSize]",
+                    "dataDiskName": "[concat(variables('wapCompute').namePrefix, '-', padLeft(add(copyIndex('wapVm'),1),2,'0'), '-DataDisk-01')]",
+                    "componentTag": "[variables('wapCompute').componentTag]"
+                }
+            },
+            {
+                "name": "jumpVm",
+                "count": "[variables('jumpCompute').count]",
+                "input": {
+                    "name": "[concat(variables('jumpCompute').namePrefix, '-', padLeft(add(copyIndex('jumpVm'),1),2,'0'))]",
+                    "availabilitySet": "[variables('jumpCompute').availabilitySet]",
+                    "size": "[variables('jumpCompute').size]",
+                    "subnetName": "[variables('jumpCompute').subnetName]",
+                    "privateIpAddress": "[variables('jumpCompute').privateIpAddresses[copyIndex('jumpVm')]]",
+                    "publicIpAddress": "[if(equals(variables('jumpCompute').publicIpAddresses, json('[]')), json('null'), variables('jumpCompute').publicIpAddresses[copyIndex('jumpVm')])]",
+                    "loadBalancerName": "[variables('jumpCompute').loadBalancerName]",
+                    "loadBalancerBackEndPool": "[variables('jumpCompute').loadBalancerBackEndPool]",
+                    "dnsServers": "[variables('jumpCompute').dnsServers]",
+                    "imagePublisher": "[variables('jumpCompute').imagePublisher]",
+                    "imageOffer": "[variables('jumpCompute').imageOffer]",
+                    "imageSKU": "[variables('jumpCompute').imageSKU]",
+                    "imageVersion": "[variables('jumpCompute').imageVersion]",
+                    "localUsername": "[variables('jumpCompute').localUsername]",
+                    "localPassword": "[variables('jumpCompute').localPassword]",
+                    "domainJoin": "[variables('jumpCompute').domainJoin]",
+                    "dscConfig": "[variables('jumpCompute').dscConfig]",
+                    "osDiskType": "[variables('jumpCompute').osDiskType]",
+                    "osDiskCache": "[variables('jumpCompute').osDiskCache]",
+                    "osDiskSize": "[variables('jumpCompute').osDiskSize]",
+                    "dataDiskType": "[variables('jumpCompute').dataDiskType]",
+                    "dataDiskCache": "[variables('jumpCompute').dataDiskCache]",
+                    "dataDiskSize": "[variables('jumpCompute').dataDiskSize]",
+                    "dataDiskName": "[concat(variables('jumpCompute').namePrefix, '-', padLeft(add(copyIndex('jumpVm'),1),2,'0'), '-DataDisk-01')]",
+                    "componentTag": "[variables('jumpCompute').componentTag]"
+                }
+            }
+        ],
+        "vm": "[concat(variables('addsVm'), variables('adfsVm'), variables('adcaVm'), variables('wapVm'), variables('jumpVm'))]",
+        "jumpHostRecord": "jump",
+        "stsHostRecord": "sts",
+        "caHostRecord": "ca",
+        "publicDnsRecords": [
+            {
+                "recordName": "[variables('stsHostRecord')]",
+                "publicIpName": "[variables('wapPipName')]"
+            },
+            {
+                "recordName": "[variables('jumpHostRecord')]",
+                "publicIpName": "[variables('jumpPipName')]"
+            }
+        ]
+    },
+    "functions": [
+        {
+            "namespace": "corefunc",
+            "members": {
+                "GetResourceId": {
+                    "parameters": [
+                        {
+                            "name": "ResourceGroup",
+                            "type": "string"
+                        },
+                        {
+                            "name": "Name",
+                            "type": "string"
+                        },
+                        {
+                            "name": "Type",
+                            "type": "string"
+                        },
+                        {
+                            "name": "Suffix",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "type": "object",
+                        "value": {
+                            "id": "[concat(resourceId(parameters('ResourceGroup'), parameters('Type'), parameters('Name')), parameters('Suffix'))]"
+                        }
+                    }
+                },
+                "GetLoadBalancerBackEndId": {
+                    "parameters": [
+                        {
+                            "name": "ResourceGroup",
+                            "type": "string"
+                        },
+                        {
+                            "name": "LoadBalancerName",
+                            "type": "string"
+                        },
+                        {
+                            "name": "BackendPoolName",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "type": "array",
+                        "value": [
+                            {
+                                "id": "[concat(resourceId(parameters('ResourceGroup'), 'Microsoft.Network/loadBalancers', parameters('LoadBalancerName')), '/backendAddressPools/', parameters('BackendPoolName'))]"
+                            }
+                        ]
+                    }
+                },
+                "GetDataDisks": {
+                    "parameters": [
+                        {
+                            "name": "DiskType",
+                            "type": "string"
+                        },
+                        {
+                            "name": "DiskCache",
+                            "type": "string"
+                        },
+                        {
+                            "name": "DiskSize",
+                            "type": "int"
+                        },
+                        {
+                            "name": "DiskName",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "type": "array",
+                        "value": [
+                            {
+                                "caching": "[parameters('DiskCache')]",
+                                "diskSizeGB": "[parameters('DiskSize')]",
+                                "lun": 1,
+                                "name": "[parameters('DiskName')]",
+                                "createOption": "Empty",
+                                "managedDisk": {
+                                    "storageAccountType": "[parameters('DiskType')]"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "resources": [
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[concat(variables('subnets')[copyIndex('nsgLoop')].name, '-NSG')]",
+            "condition": "[equals(variables('subnets')[copyIndex('nsgLoop')].nsg, json('true'))]",
+            "apiVersion": "2018-11-01",
+            "copy": {
+                "name": "nsgLoop",
+                "count": "[length(variables('subnets'))]"
+            },
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "system": "[parameters('tagSystem')]",
+                "component": "[concat(variables('subnets')[copyIndex('nsgLoop')].description, ' NSG')]"
+            },
+            "properties": {
+                "copy": [
+                    {
+                        "name": "securityRules",
+                        "count": "[length(variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules)]",
+                        "input": {
+                            "name": "[variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].name]",
+                            "properties": {
+                                "description": "[variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].description]",
+                                "protocol": "[variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].protocol]",
+                                "sourcePortRange": "[if(not(equals(variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].sourcePortRange, json('null'))), variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].sourcePortRange, json('null'))]",
+                                "sourcePortRanges": "[if(not(equals(variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].sourcePortRanges, json('null'))), variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].sourcePortRanges, json('null'))]",
+                                "destinationPortRange": "[if(not(equals(variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].destinationPortRange, json('null'))), variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].destinationPortRange, json('null'))]",
+                                "destinationPortRanges": "[if(not(equals(variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].destinationPortRanges, json('null'))), variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].destinationPortRanges, json('null'))]",
+                                "sourceAddressPrefix": "[if(not(equals(variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].sourceAddressPrefix, json('null'))), variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].sourceAddressPrefix, json('null'))]",
+                                "sourceAddressPrefixes": "[if(not(equals(variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].sourceAddressPrefixes, json('null'))), variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].sourceAddressPrefixes, json('null'))]",
+                                "destinationAddressPrefix": "[if(not(equals(variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].destinationAddressPrefix, json('null'))), variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].destinationAddressPrefix, json('null'))]",
+                                "destinationAddressPrefixes": "[if(not(equals(variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].destinationAddressPrefixes, json('null'))), variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].destinationAddressPrefixes, json('null'))]",
+                                "access": "[variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].access]",
+                                "priority": "[variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].priority]",
+                                "direction": "[variables('subnets')[copyIndex('nsgLoop')].nsgSecurityRules[copyIndex('securityRules')].direction]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[variables('vnetName')]",
+            "apiVersion": "2018-11-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "system": "[parameters('tagSystem')]",
+                "component": "Core Virtual Network"
+            },
+            "dependsOn": [
+                "nsgLoop"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": "[parameters('vnetAddressPrefixes')]"
+                },
+                "dhcpOptions": {
+                    "dnsServers": "[if(equals(parameters('vnetDnsServers'), json('[]')), json('null'), parameters('vnetDnsServers'))]"
+                },
+                "copy": [
+                    {
+                        "name": "subnets",
+                        "count": "[length(variables('subnets'))]",
+                        "input": {
+                            "name": "[variables('subnets')[copyIndex('subnets')].name]",
+                            "properties": {
+                                "addressPrefix": "[variables('subnets')[copyIndex('subnets')].ipPrefix]",
+                                "networkSecurityGroup": "[if(equals(variables('subnets')[copyIndex('subnets')].nsg, json('false')), json('null'), corefunc.GetResourceId(resourceGroup().name, concat(variables('subnets')[copyIndex('subnets')].name, '-NSG'), 'Microsoft.Network/networkSecurityGroups', ''))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "name": "[variables('keyVaultName')]",
+            "apiVersion": "2016-10-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "system": "[parameters('tagSystem')]",
+                "component": "Core Key Vault"
+            },
+            "properties": {
+                "enabledForDeployment": true,
+                "enabledForDiskEncryption": true,
+                "enabledForTemplateDeployment": true,
+                "tenantId": "[subscription().tenantId]",
+                "sku": {
+                    "name": "Standard",
+                    "family": "A"
+                },
+                "accessPolicies": [
+                    {
+                        "comments": "Full Access Group",
+                        "tenantId": "[subscription().tenantId]",
+                        "objectId": "[parameters('keyVaultFullAccessAadGroupId')]",
+                        "permissions": {
+                            "keys": [
+                                "Get",
+                                "List",
+                                "Update",
+                                "Create",
+                                "Import",
+                                "Delete",
+                                "Recover",
+                                "Backup",
+                                "Restore"
+                            ],
+                            "secrets": [
+                                "Get",
+                                "List",
+                                "Set",
+                                "Delete",
+                                "Recover",
+                                "Backup",
+                                "Restore"
+                            ],
+                            "certificates": [
+                                "Get",
+                                "List",
+                                "Update",
+                                "Create",
+                                "Import",
+                                "Delete",
+                                "Recover",
+                                "Backup",
+                                "Restore",
+                                "ManageContacts",
+                                "ManageIssuers",
+                                "GetIssuers",
+                                "ListIssuers",
+                                "SetIssuers",
+                                "DeleteIssuers"
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "name": "[concat(variables('keyVaultName'), '/', variables('keyVaultSecrets')[copyIndex('secretLoop')].name)]",
+            "condition": "[equals(variables('keyVaultSecrets')[copyIndex('secretLoop')].deploy, json('true'))]",
+            "apiVersion": "2016-10-01",
+            "copy": {
+                "name": "secretLoop",
+                "count": "[length(variables('keyVaultSecrets'))]"
+            },
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+            ],
+            "properties": {
+                "value": "[variables('keyVaultSecrets')[copyIndex('secretLoop')].value]"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('storeName')]",
+            "apiVersion": "2017-10-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "system": "[parameters('tagSystem')]",
+                "component": "Storage account for VM Diagnotic files"
+            },
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "kind": "Storage"
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[variables('publicIpAddress')[copyIndex('publicIpLoop')].name]",
+            "apiVersion": "2018-11-01",
+            "copy": {
+                "name": "publicIpLoop",
+                "count": "[length(variables('publicIpAddress'))]"
+            },
+            "location": "[resourceGroup().location]",
+            "tags": "[variables('publicIpAddress')[copyIndex('publicIpLoop')].tags]",
+            "sku": {
+                "name": "[variables('publicIpAddress')[copyIndex('publicIpLoop')].sku]"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "[variables('publicIpAddress')[copyIndex('publicIpLoop')].publicIPAllocationMethod]",
+                "publicIPAddressVersion": "IPv4",
+                "dnsSettings": {
+                    "domainNameLabel": "[variables('publicIpAddress')[copyIndex('publicIpLoop')].domainNameLabel]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/loadBalancers",
+            "name": "[variables('loadBalancers')[copyIndex('lbLoop')].name]",
+            "apiVersion": "2018-06-01",
+            "copy": {
+                "name": "lbLoop",
+                "count": "[length(variables('loadBalancers'))]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]",
+                "publicIpLoop"
+            ],
+            "location": "[resourceGroup().location]",
+            "tags": "[variables('loadBalancers')[copyIndex('lbLoop')].tags]",
+            "sku": {
+                "name": "[variables('loadBalancers')[copyIndex('lbLoop')].sku]"
+            },
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "[variables('loadBalancers')[copyIndex('lbLoop')].lbFrontEndName]",
+                        "properties": {
+                            "subnet": "[if(equals(variables('loadBalancers')[copyIndex('lbLoop')].lbFrontendType, 'private'), corefunc.GetResourceId(resourceGroup().name, variables('vnetName'), 'Microsoft.Network/virtualNetworks', concat('/subnets/', variables('loadBalancers')[copyIndex('lbLoop')].subnet)), json('null'))]",
+                            "privateIPAddress": "[if(equals(variables('loadBalancers')[copyIndex('lbLoop')].lbFrontendType, 'private'), variables('loadBalancers')[copyIndex('lbLoop')].privateIpAddress, json('null'))]",
+                            "privateIPAllocationMethod": "[if(equals(variables('loadBalancers')[copyIndex('lbLoop')].lbFrontendType, 'private'), 'Static', json('null'))]",
+                            "publicIPAddress": "[if(equals(variables('loadBalancers')[copyIndex('lbLoop')].lbFrontendType, 'public'), corefunc.GetResourceId(resourceGroup().name, variables('loadBalancers')[copyIndex('lbLoop')].publicIpName, 'Microsoft.Network/publicIPAddresses', ''), json('null'))]"
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "[variables('loadBalancers')[copyIndex('lbLoop')].lbBackEndName]"
+                    }
+                ],
+                "probes": [
+                    {
+                        "name": "HTTPS",
+                        "properties": {
+                            "protocol": "tcp",
+                            "port": 443,
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 2
+                        }
+                    }
+                ],
+                "loadBalancingRules": [
+                    {
+                        "name": "HTTPS",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations', variables('loadBalancers')[copyIndex('lbLoop')].name, variables('loadBalancers')[copyIndex('lbLoop')].lbFrontEndName)]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('loadBalancers')[copyIndex('lbLoop')].name, variables('loadBalancers')[copyIndex('lbLoop')].lbBackEndName)]"
+                            },
+                            "frontendPort": 443,
+                            "backendPort": 443,
+                            "idleTimeoutInMinutes": 15,
+                            "protocol": "Tcp",
+                            "probe": {
+                                "id": "[resourceId('Microsoft.Network/loadBalancers/probes', variables('loadBalancers')[copyIndex('lbLoop')].name, 'HTTPS')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworkGateways",
+            "name": "[variables('vgwName')]",
+            "apiVersion": "2018-11-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]",
+                "publicIpLoop"
+            ],
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "system": "[parameters('tagSystem')]",
+                "component": "Virtual Network Gateway"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[corefunc.GetResourceId(resourceGroup().name, variables('vnetName'), 'Microsoft.Network/virtualNetworks', concat('/subnets/', variables('vgwSubnetName')))]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('vgwPipName'))]"
+                            }
+                        },
+                        "name": "vnetGatewayConfig"
+                    }
+                ],
+                "sku": {
+                    "name": "[variables('vgwSku')]",
+                    "tier": "[variables('vgwSku')]"
+                },
+                "gatewayType": "Vpn",
+                "vpnType": "RouteBased",
+                "enableBgp": false
+            }
+        },
+        {
+            "type": "Microsoft.Compute/availabilitySets",
+            "name": "[variables('availabilitySets')[copyIndex('avSetLoop')].name]",
+            "apiVersion": "2017-12-01",
+            "copy": {
+                "name": "avSetLoop",
+                "count": "[length(variables('availabilitySets'))]"
+            },
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "PlatformUpdateDomainCount": "[variables('availabilitySets')[copyIndex('avSetLoop')].PlatformUpdateDomainCount]",
+                "PlatformFaultDomainCount": "[variables('availabilitySets')[copyIndex('avSetLoop')].PlatformFaultDomainCount]"
+            },
+            "sku": {
+                "name": "Aligned"
+            },
+            "tags": "[variables('availabilitySets')[copyIndex('avSetLoop')].tags]"
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(variables('vm')[copyIndex('nicLoop')].name,'-NIC-01')]",
+            "apiVersion": "2017-11-01",
+            "copy": {
+                "name": "nicLoop",
+                "count": "[length(variables('vm'))]"
+            },
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "system": "[parameters('tagSystem')]",
+                "component": "[concat(variables('vm')[copyIndex('nicLoop')].componentTag, ' NIC')]"
+            },
+            "dependsOn": [
+                "lbLoop"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "publicIPAddress": "[if(equals(variables('vm')[copyIndex('nicLoop')].publicIpAddress, json('null')), json('null'), corefunc.GetResourceId(resourceGroup().name, variables('vm')[copyIndex('nicLoop')].publicIpAddress, 'Microsoft.Network/publicIPAddresses', ''))]",
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[variables('vm')[copyIndex('nicLoop')].privateIpAddress]",
+                            "subnet": "[corefunc.GetResourceId(resourceGroup().name, variables('vnetName'), 'Microsoft.Network/virtualNetworks', concat('/subnets/', variables('vm')[copyIndex('nicLoop')].subnetName))]",
+                            "loadBalancerBackendAddressPools": "[if(equals(variables('vm')[copyIndex('nicLoop')].loadBalancerName, json('null')), json('null'), corefunc.GetLoadBalancerBackEndId(resourceGroup().name, variables('vm')[copyIndex('nicLoop')].loadBalancerName, variables('vm')[copyIndex('nicLoop')].loadBalancerBackEndPool))]"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": "[if(equals(variables('vm')[copyIndex('nicLoop')].dnsServers, json('[]')), json('null'), variables('vm')[copyIndex('nicLoop')].dnsServers)]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[variables('vm')[copyIndex('vmLoop')].name]",
+            "apiVersion": "2017-12-01",
+            "copy": {
+                "name": "vmLoop",
+                "count": "[length(variables('vm'))]"
+            },
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "system": "[parameters('tagSystem')]",
+                "component": "[variables('vm')[copyIndex('vmLoop')].componentTag]"
+            },
+            "dependsOn": [
+                "avSetLoop",
+                "nicLoop",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storeName'))]",
+                "secretLoop"
+            ],
+            "properties": {
+                "availabilitySet": "[if(equals(variables('vm')[copyIndex('vmLoop')].availabilitySet, json('null')), json('null'), corefunc.GetResourceId(resourceGroup().name, variables('vm')[copyIndex('vmLoop')].availabilitySet, 'Microsoft.Compute/availabilitySets', ''))]",
+                "hardwareProfile": {
+                    "vmSize": "[variables('vm')[copyIndex('vmLoop')].size]"
+                },
+                "osProfile": {
+                    "computerName": "[variables('vm')[copyIndex('vmLoop')].name]",
+                    "adminUsername": "[variables('vm')[copyIndex('vmLoop')].localUsername]",
+                    "adminPassword": "[variables('vm')[copyIndex('vmLoop')].localPassword]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[variables('vm')[copyIndex('vmLoop')].imagePublisher]",
+                        "offer": "[variables('vm')[copyIndex('vmLoop')].imageOffer]",
+                        "sku": "[variables('vm')[copyIndex('vmLoop')].imageSKU]",
+                        "version": "[variables('vm')[copyIndex('vmLoop')].imageVersion]"
+                    },
+                    "osDisk": {
+                        "name": "[concat(variables('vm')[copyIndex('vmLoop')].name, '-OSDISK')]",
+                        "managedDisk": {
+                            "storageAccountType": "[variables('vm')[copyIndex('vmLoop')].osDiskType]"
+                        },
+                        "caching": "[variables('vm')[copyIndex('vmLoop')].osDiskCache]",
+                        "diskSizeGB": "[if(equals(variables('vm')[copyIndex('vmLoop')].osDiskSize, json('null')), json('null'), variables('vm')[copyIndex('vmLoop')].osDiskSize)]",
+                        "createOption": "FromImage"
+                    },
+                    "dataDisks": "[if(equals(variables('vm')[copyIndex('vmLoop')].dataDiskSize, json('null')), json('null'), corefunc.GetDataDisks(variables('vm')[copyIndex('vmLoop')].dataDiskType, variables('vm')[copyIndex('vmLoop')].dataDiskCache, variables('vm')[copyIndex('vmLoop')].dataDiskSize, variables('vm')[copyIndex('vmLoop')].dataDiskName))]"
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('vm')[copyIndex('vmLoop')].name,'-NIC-01'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', variables('storeName')), '2015-06-15').primaryEndpoints.blob)]"
+                    }
+                }
+            },
+            "resources": []
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('addsCompute').namePrefix,'-01/FirstDcCreateForest')]",
+            "apiVersion": "2017-12-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "vmLoop"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.8",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "modulesUrl": "[concat(parameters('rootDscUri'), '/', parameters('adds01dscConfig'), '.ps1.zip')]",
+                    "configurationFunction": "[concat(parameters('adds01dscConfig'), '.ps1\\', parameters('adds01dscConfig'))]",
+                    "properties": {
+                        "DeploymentPrefix": "[parameters('deploymentPrefix')]",
+                        "DomainName": "[parameters('addsDomainName')]",
+                        "DnsForwarder": "[parameters('publicDnsServer')]",
+                        "PublicDomainName": "[parameters('publicDomainName')]",
+                        "StsRecordName": "[variables('stsHostRecord')]",
+                        "StsRecordAddress": "[parameters('internalAdfsLbIpAddress')]",
+                        "CaRecordName": "[variables('caHostRecord')]",
+                        "CaRecordAddress": "[parameters('adcaServersIpAddresses')[0]]",
+                        "JumpSubnet": "[parameters('subnetPrefixJUMP')]",
+                        "AdminCreds": {
+                            "userName": "[parameters('daUserName')]",
+                            "password": "PrivateSettingsRef:adminPassword"
+                        },
+                        "DomainJoinUserName": "[parameters('djUserName')]",
+                        "DomainJoinPassword": {
+                            "userName": "[parameters('djUserName')]",
+                            "password": "PrivateSettingsRef:djUserPassword"
+                        }
+                    }
+                },
+                "protectedSettings": {
+                    "items": {
+                        "adminPassword": "[parameters('daUserPassword')]",
+                        "djUserPassword": "[parameters('djUserPassword')]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[concat('changeDcNicDnsServers', copyIndex('addsNicLoop'))]",
+            "apiVersion": "2016-06-01",
+            "copy": {
+                "name": "addsNicLoop",
+                "count": "[length(variables('addsVm'))]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('addsCompute').namePrefix, '-01/extensions/FirstDcCreateForest')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "functions": [],
+                    "variables": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/networkInterfaces",
+                            "name": "[concat(variables('addsVm')[copyIndex('addsNicLoop')].name,'-NIC-01')]",
+                            "apiVersion": "2017-11-01",
+                            "location": "[resourceGroup().location]",
+                            "tags": {
+                                "system": "[parameters('tagSystem')]",
+                                "component": "[concat(variables('addsVm')[copyIndex('addsNicLoop')].componentTag, ' NIC')]"
+                            },
+                            "properties": {
+                                "ipConfigurations": [
+                                    {
+                                        "name": "ipconfig1",
+                                        "properties": {
+                                            "publicIPAddress": "[if(equals(variables('addsVm')[copyIndex('addsNicLoop')].publicIpAddress, json('null')), json('null'), corefunc.GetResourceId(resourceGroup().name, variables('addsVm')[copyIndex('addsNicLoop')].publicIpAddress, 'Microsoft.Network/publicIPAddresses', ''))]",
+                                            "privateIPAllocationMethod": "Static",
+                                            "privateIPAddress": "[variables('addsVm')[copyIndex('addsNicLoop')].privateIpAddress]",
+                                            "subnet": "[corefunc.GetResourceId(resourceGroup().name, variables('vnetName'), 'Microsoft.Network/virtualNetworks', concat('/subnets/', variables('addsVm')[copyIndex('addsNicLoop')].subnetName))]",
+                                            "loadBalancerBackendAddressPools": "[if(equals(variables('addsVm')[copyIndex('addsNicLoop')].loadBalancerName, json('null')), json('null'), corefunc.GetLoadBalancerBackEndId(resourceGroup().name, variables('addsVm')[copyIndex('addsNicLoop')].loadBalancerName, variables('addsVm')[copyIndex('addsNicLoop')].loadBalancerBackEndPool))]"
+                                        }
+                                    }
+                                ],
+                                "dnsSettings": {
+                                    "dnsServers": null
+                                }
+                            }
+                        }
+                    ],
+                    "outputs": {}
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('addsCompute').namePrefix,'-02/SecondDcPromote')]",
+            "apiVersion": "2017-12-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "addsNicLoop"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.8",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "modulesUrl": "[concat(parameters('rootDscUri'), '/', parameters('adds02dscConfig'), '.ps1.zip')]",
+                    "configurationFunction": "[concat(parameters('adds02dscConfig'), '.ps1\\', parameters('adds02dscConfig'))]",
+                    "properties": {
+                        "DeploymentPrefix": "[parameters('deploymentPrefix')]",
+                        "domainName": "[parameters('addsDomainName')]",
+                        "DnsForwarder": "[parameters('publicDnsServer')]",
+                        "adminCreds": {
+                            "userName": "[parameters('daUserName')]",
+                            "password": "PrivateSettingsRef:adminPassword"
+                        },
+                        "JumpSubnet": "[parameters('subnetPrefixJUMP')]"
+                    }
+                },
+                "protectedSettings": {
+                    "items": {
+                        "adminPassword": "[parameters('daUserPassword')]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('vm')[copyIndex('vmDomainJoinLoop')].name,'/joindomain')]",
+            "condition": "[equals(variables('vm')[copyIndex('vmDomainJoinLoop')].domainJoin, json('true'))]",
+            "apiVersion": "2017-12-01",
+            "copy": {
+                "name": "vmDomainJoinLoop",
+                "count": "[length(variables('vm'))]"
+            },
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('addsCompute').namePrefix, '-02/extensions/SecondDcPromote')]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "JsonADDomainExtension",
+                "typeHandlerVersion": "1.3",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "Name": "[parameters('addsDomainName')]",
+                    "OUPath": "[concat('OU=Servers,DC=', replace(parameters('addsDomainName'), '.', ',DC='))]",
+                    "User": "[concat(parameters('addsDomainName'), '\\', parameters('djUserName'))]",
+                    "Restart": "true",
+                    "Options": "3"
+                },
+                "protectedSettings": {
+                    "Password": "[parameters('djUserPassword')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('vm')[copyIndex('vmDscLoop')].name, '/dsc')]",
+            "condition": "[not(equals(variables('vm')[copyIndex('vmDscLoop')].dscConfig, json('null')))]",
+            "apiVersion": "2017-12-01",
+            "copy": {
+                "name": "vmDscLoop",
+                "count": "[length(variables('vm'))]"
+            },
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "vmDomainJoinLoop"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.8",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "modulesUrl": "[concat(parameters('rootDscUri'), '/', variables('vm')[copyIndex('vmDscLoop')].dscConfig, '.ps1.zip')]",
+                    "configurationFunction": "[concat(variables('vm')[copyIndex('vmDscLoop')].dscConfig, '.ps1\\', variables('vm')[copyIndex('vmDscLoop')].dscConfig)]",
+                    "properties": {
+                        "DeploymentPrefix": "[parameters('deploymentPrefix')]",
+                        "JumpSubnet": "[parameters('subnetPrefixJUMP')]"
+                    }
+                },
+                "protectedSettings": {}
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('adcaCompute').namePrefix,'-01/CertSrvInstall')]",
+            "apiVersion": "2017-12-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "vmDomainJoinLoop"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.8",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "modulesUrl": "[concat(parameters('rootDscUri'), '/', parameters('adcaDscConfig'), '.ps1.zip')]",
+                    "configurationFunction": "[concat(parameters('adcaDscConfig'), '.ps1\\', parameters('adcaDscConfig'))]",
+                    "properties": {
+                        "DeploymentPrefix": "[parameters('deploymentPrefix')]",
+                        "CACommonName": "[concat(parameters('deploymentPrefix'), '-CA')]",
+                        "Credential": {
+                            "userName": "[parameters('daUserName')]",
+                            "password": "PrivateSettingsRef:adminPassword"
+                        },
+                        "JumpSubnet": "[parameters('subnetPrefixJUMP')]"
+                    }
+                },
+                "protectedSettings": {
+                    "items": {
+                        "adminPassword": "[parameters('daUserPassword')]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/dnsZones",
+            "name": "[parameters('publicDomainName')]",
+            "apiVersion": "2016-04-01",
+            "tags": {
+                "system": "[parameters('tagSystem')]",
+                "component": "Public domain DNS zone"
+            },
+            "location": "global"
+        },
+        {
+            "type": "Microsoft.Network/dnsZones/A",
+            "name": "[concat(parameters('publicDomainName'), '/', variables('publicDnsRecords')[copyIndex('dnsRecordLoop')].recordName)]",
+            "apiVersion": "2016-04-01",
+            "copy": {
+                "name": "dnsRecordLoop",
+                "count": "[length(variables('publicDnsRecords'))]"
+            },
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/dnsZones', parameters('publicDomainName'))]",
+                "vmLoop"
+            ],
+            "properties": {
+                "TTL": 3600,
+                "ARecords": [
+                    {
+                        "ipv4Address": "[reference(resourceid('Microsoft.Network/publicIPAddresses', variables('publicDnsRecords')[copyIndex('dnsRecordLoop')].publicIpName), '2018-11-01').ipAddress]"
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {
+        "vm": {
+            "type": "array",
+            "value": "[variables('vm')]"
+        }
+    }
+}

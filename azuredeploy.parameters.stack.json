@@ -1,0 +1,114 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "deploymentPrefix": {
+            "value": "FG"
+        },
+        "deploymentLocation":{
+            "value": "local"
+        },
+        "supernetPrefix": {
+            "value": "10.197.96.0/21"            
+        },
+        "vnetAddressPrefixes": {
+            "value": ["10.197.98.0/24"]
+        },
+        "vnetDnsServers": {
+            "value": ["10.197.98.36","10.197.98.37"]
+        },
+        "subnetPrefixVNGW": {
+            "value": "10.197.98.0/27"
+        },
+        "subnetPrefixADDS": {
+            "value": "10.197.98.32/27"
+        },
+        "subnetPrefixADFS": {
+            "value": "10.197.98.64/27"
+        },
+        "subnetPrefixWAP": {
+            "value": "10.197.98.96/27"
+        },
+        "subnetPrefixJUMP": {
+            "value": "10.197.98.128/27"
+        },        
+        "addsServersIpAddresses": {
+            "value": ["10.197.98.36","10.197.98.37"]
+        },       
+        "adfsServersIpAddresses": {
+            "value": ["10.197.98.68","10.197.98.69"]
+        },       
+        "adcaServersIpAddresses": {
+            "value": ["10.197.98.38"]
+        },
+        "internalAdfsLbIpAddress": {
+            "value": "10.197.98.70"
+        },       
+        "wapServersIpAddresses": {
+            "value": ["10.197.98.100","10.197.98.101"]
+        },      
+        "jumpServersIpAddresses": {
+            "value": ["10.197.98.132","10.197.98.133"]
+        },
+        "tagSystem": {
+            "value": "Core Services"
+        },
+        "addsVmSize": {
+            "value": "Standard_A2"
+        },
+        "adfsVmSize": {
+            "value": "Standard_A2"
+        },
+        "adcaVmSize": {
+            "value": "Standard_A2"
+        },
+        "wapVmSize": {
+            "value": "Standard_A1"
+        },
+        "jumpVmSize": {
+            "value": "Standard_DS3_v2"
+        },
+        "keyVaultFullAccessAadGroupId": {
+            "value": "S-1-5-21-179521936-3392370605-1578141762-1261"
+        },
+        "daUserName": {
+            "value": "dauser1"
+        },
+        "addsDomainName": {
+            "value": "ad.fabien.lab"
+        },
+        "publicDomainName": {
+            "value": "fabien.lab"
+        },
+        "laUserName": {
+            "value": "lauser1"
+        },
+        "djUserName": {
+            "value": "djuser1"
+        },
+        "stackBackEndSubnet": {
+            "value": "192.168.200.0/24"
+        },
+        "mgmtAllowedPrivateIp": {            
+            "value": "172.25.11.0/24"
+        },
+        "adds01dscConfig": {
+            "value": "addsCreateDomain"
+        },
+        "adds02dscConfig": {
+            "value": "addsDomainController"
+        },
+        "adfsDscConfig": {
+            "value": "adfsInstall"
+        },
+        "adcaDscConfig": {
+            "value": "adcsCreateCA"
+        },
+        "wapDscConfig": {
+            "value": "wapInstall"
+        },
+        "jumpDscConfig": {
+            "value": "jumpInstall"
+        }
+    }
+}
