@@ -389,7 +389,7 @@
                 "description": "Allow InBound Active Directory TCP protocols to the Domain Controllers",
                 "access": "allow",
                 "protocol": "tcp",
-                "sourceAddressPrefix": [],
+                "sourceAddressPrefix": "",
                 "sourceAddressPrefixes": [
                     "[parameters('supernetPrefix')]",
                     "[parameters('mgmtAllowedPrivateIp')]"
