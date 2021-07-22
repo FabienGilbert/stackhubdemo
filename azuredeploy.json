@@ -1621,9 +1621,7 @@
                     {
                         "properties": {
                             "privateIPAllocationMethod": "Dynamic",
-                            "subnet": {
-                                "id": "[corefunc.GetResourceId(resourceGroup().name, variables('vnetName'), 'Microsoft.Network/virtualNetworks', concat('/subnets/', variables('vgwSubnetName')))]"
-                            },
+                            "subnet": "[corefunc.GetResourceId(resourceGroup().name, variables('vnetName'), 'Microsoft.Network/virtualNetworks', concat('/subnets/', variables('vgwSubnetName')))]",
                             "publicIPAddress": {
                                 "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('vgwPipName'))]"
                             }
